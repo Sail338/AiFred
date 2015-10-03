@@ -34,6 +34,7 @@ public  class CalenderCalls extends AsyncTask<Void, Void, List<String>> {
                 .setApplicationName("Google Calendar API Android Quickstart")
                 .build();
     }
+
     @Override
     protected List<String> doInBackground(Void... params) {
         try {
@@ -48,14 +49,16 @@ public  class CalenderCalls extends AsyncTask<Void, Void, List<String>> {
 
         DateTime dt = new DateTime(System.currentTimeMillis());
         List<String> info = new ArrayList<>();
-        Events events = service.events().list("primary").setMaxResults(100).execute();
+        Events events = service.events().list("primary").setMaxResults(10).setTimeMin(dt).execute();
         List<Event> eventList = events.getItems();
         for(Event event : eventList){
             System.out.println(event);
             info.add(event.toString());
+            System.out.println(event);
 
         }
-        Log.i("fuck",info.get(0));
+        Log.v("fuck",info.get(0));
+        Log.println(1,null,info.get(1));
         return info;
 
 
