@@ -38,6 +38,12 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import com.google.gson.Gson;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -284,7 +290,7 @@ public List<String> eventList(){
 
             Gson gson = new Gson();
 
-            Events events = mService.events().list("primary").setMaxResults(1000000).setTimeMin(now).execute();
+            Events events = mService.events().list("primary").setMaxResults(1).setTimeMin(now).execute();
             List<Event> eventList = events.getItems();
             for(Event event : eventList) {
 
@@ -311,19 +317,41 @@ public List<String> eventList(){
                 calender.setTimeInMillis(System.currentTimeMillis());
                 calender.set(java.util.Calendar.HOUR_OF_DAY, 02);
                 calender.set(java.util.Calendar.MINUTE, 01);
-                Intent intent = new Intent(getApplicationContext(),AlarmReciver.class);
-                PendingIntent pd = PendingIntent.getBroadcast(getApplicationContext(),0,intent,0);
+                Intent intent = new Intent(CalenderActivuty.this,AlarmReciver.class);
+
+                PendingIntent pd = PendingIntent.getBroadcast(CalenderActivuty.this,0,intent,0);
+                Log.v("PD",pd.toString());
                 //fire Pending intent to setAlarm
                  manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calender.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pd);
-                Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
-                if(Integer.parseInt(parsedTime[0])-1 > 12) {
-                    i.putExtra(AlarmClock.EXTRA_IS_PM,"true");
+
+                    Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
+                    i.putExtra(AlarmClock.EXTRA_SKIP_UI,"true");
+
+
                     i.putExtra(AlarmClock.EXTRA_HOUR, Integer.parseInt(parsedTime[0]) - 1);
+
                     i.putExtra(AlarmClock.EXTRA_MINUTES, Integer.parseInt(parsedTime[1]));
 
-                }
-                startActivity(i);
-                Log.v("test", pd.toString());
+
+
+
+                        HttpClient client = new DefaultHttpClient();
+                        HttpPost post = new HttpPost("https://69983941.ngrok.io/aifred/anything.php");
+                        try {
+                            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                            // we wont be receiving the parameter ID in your server, but it is here to show you how you can send more data
+                            nameValuePairs.add(new BasicNameValuePair("id", "12345"));
+                            // message is the parameter we are receiving, it has the value of 1 which is the value that will be sent from your server to your Arduino board
+                            nameValuePairs.add(new BasicNameValuePair("message", "1"));
+                            post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+                            client.execute(post); // send the parameter to the server
+                        }
+                        catch (Exception e){
+
+                        }
+                    
+                //startActivity(i);
+
 
 
 
@@ -365,6 +393,7 @@ public List<String> eventList(){
                 output.add(0, "Data retrieved using the Google Calendar API:");
                 mOutputText.setText(TextUtils.join("\n", output));
             }
+
         }
 
         @Override
