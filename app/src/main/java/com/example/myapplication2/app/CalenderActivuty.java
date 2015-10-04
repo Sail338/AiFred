@@ -1,9 +1,7 @@
 package com.example.myapplication2.app;
 
 import android.accounts.AccountManager;
-import android.app.Activity;
-import android.app.Dialog;
-import android.app.ProgressDialog;
+import android.app.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,8 +9,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.AlarmClock;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -26,22 +26,32 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.Json;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
+import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import com.google.gson.Gson;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.jar.JarException;
 
 
 public class CalenderActivuty extends Activity {
     GoogleAccountCredential credential;
+    List<String> eventStrings = new ArrayList<String>();
+
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
@@ -85,7 +95,10 @@ public class CalenderActivuty extends Activity {
                 .setBackOff(new ExponentialBackOff())
                 .setSelectedAccountName(settings.getString(PREF_ACCOUNT_NAME, null));
     }
+public List<String> eventList(){
 
+    return eventStrings;
+}
 
     /**
      * Called whenever this activity is pushed to the foreground, such as after
@@ -257,30 +270,84 @@ public class CalenderActivuty extends Activity {
          * @return List of Strings describing returned events.
          * @throws IOException
          */
-        private List<String> getDataFromApi() throws IOException {
+        private List<String> getDataFromApi() throws IOException, JSONException,CancellationException,Exception {
+            //assume first calender is the one tto use
+            //Log.v("omg",mService.calendarList().get("HariShankar").toString());
+            Long time = new GregorianCalendar().getTimeInMillis()+900*60*68*1000;
+
             // List the next 10 events from the primary calendar.
             DateTime now = new DateTime(System.currentTimeMillis());
-            List<String> eventStrings = new ArrayList<String>();
-            Events events = mService.events().list("primary")
-                    .setMaxResults(10)
-                    .setTimeMin(now)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            List<Event> items = events.getItems();
+            AlarmManager manager;
+            PendingIntent intent2;
 
-            for (Event event : items) {
-                DateTime start = event.getStart().getDateTime();
-                if (start == null) {
-                    // All-day events don't have start times, so just use
-                    // the start date.
-                    start = event.getStart().getDate();
+
+
+            Gson gson = new Gson();
+
+            Events events = mService.events().list("primary").setMaxResults(1000000).setTimeMin(now).execute();
+            List<Event> eventList = events.getItems();
+            for(Event event : eventList) {
+
+
+                //lets get the event start time and initate alamrms for each 1 hour before k?
+
+                DateTime dt = event.getStart().getDateTime();
+
+
+
+
+                if(dt == null) {
+                    dt = event.getStart().getDate();
                 }
-                eventStrings.add(
-                        String.format("%s (%s)", event.getSummary(), start));
-            }
+                    String[] parsedDates = dt.toStringRfc3339().split("-");
+                    String month = parsedDates[1];
+                    String day = parsedDates[2];
+                    String[] realtime = parsedDates[2].split("T");
+
+                    String[] parsedTime = realtime[1].split(":");
+                    Log.i("**time is**",parsedTime[1]);
+                 manager = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+                java.util.Calendar calender = java.util.Calendar.getInstance();
+                calender.setTimeInMillis(System.currentTimeMillis());
+                calender.set(java.util.Calendar.HOUR_OF_DAY, 02);
+                calender.set(java.util.Calendar.MINUTE, 01);
+                Intent intent = new Intent(getApplicationContext(),AlarmReciver.class);
+                PendingIntent pd = PendingIntent.getBroadcast(getApplicationContext(),0,intent,0);
+                //fire Pending intent to setAlarm
+                 manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calender.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pd);
+                Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
+                if(Integer.parseInt(parsedTime[0])-1 > 12) {
+                    i.putExtra(AlarmClock.EXTRA_IS_PM,"true");
+                    i.putExtra(AlarmClock.EXTRA_HOUR, Integer.parseInt(parsedTime[0]) - 1);
+                    i.putExtra(AlarmClock.EXTRA_MINUTES, Integer.parseInt(parsedTime[1]));
+
+                }
+                startActivity(i);
+                Log.v("test", pd.toString());
+
+
+
+
+
+                    eventStrings.add(event.getSummary()
+                    );
+
+
+                    eventStrings.add(dt.toStringRfc3339());
+
+                }
+
+
+
+
+
+
+
+
             return eventStrings;
         }
+
+
 
 
         @Override
@@ -321,5 +388,6 @@ public class CalenderActivuty extends Activity {
             }
         }
     }
+
 
 }

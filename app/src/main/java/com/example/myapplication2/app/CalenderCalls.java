@@ -58,7 +58,7 @@ public  class CalenderCalls extends AsyncTask<Void, Void, List<String>> {
 
         }
         Log.v("fuck",info.get(0));
-        Log.println(1,null,info.get(1));
+        //Log.println(1,null,info.get(1));
         return info;
 
 

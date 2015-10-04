@@ -61,6 +61,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = new Intent(this,CalenderActivuty.class);
+        Intent in = new Intent(this,AlarmActivity.class);
+        startActivity(in);
+
         //MainActivity.this.startActivity(intent);
         startActivity(intent);
     }

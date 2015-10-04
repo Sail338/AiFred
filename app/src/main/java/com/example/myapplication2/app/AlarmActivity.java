@@ -1,16 +1,27 @@
 package com.example.myapplication2.app;
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Calendar;
+import java.util.List;
 
-public class AlarmActivity extends ActionBarActivity {
+
+public class AlarmActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_alarm);
     }
 
@@ -36,4 +47,5 @@ public class AlarmActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }
