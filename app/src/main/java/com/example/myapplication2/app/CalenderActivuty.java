@@ -315,8 +315,8 @@ public List<String> eventList(){
                  manager = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
                 java.util.Calendar calender = java.util.Calendar.getInstance();
                 calender.setTimeInMillis(System.currentTimeMillis());
-                calender.set(java.util.Calendar.HOUR_OF_DAY, 02);
-                calender.set(java.util.Calendar.MINUTE, 01);
+                calender.set(java.util.Calendar.HOUR_OF_DAY, Integer.parseInt(parsedTime[0]) - 1);
+                calender.set(java.util.Calendar.MINUTE,Integer.parseInt(parsedTime[1]) );
                 Intent intent = new Intent(CalenderActivuty.this,AlarmReciver.class);
 
                 PendingIntent pd = PendingIntent.getBroadcast(CalenderActivuty.this,0,intent,0);
@@ -336,7 +336,8 @@ public List<String> eventList(){
 
 
                         HttpClient client = new DefaultHttpClient();
-                        HttpPost post = new HttpPost("https://69983941.ngrok.io/aifred/anything.php");
+                        HttpPost post = new HttpPost("" +
+                                "");
                         try {
                             List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
                             // we wont be receiving the parameter ID in your server, but it is here to show you how you can send more data
