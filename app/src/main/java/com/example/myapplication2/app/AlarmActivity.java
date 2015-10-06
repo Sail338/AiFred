@@ -25,8 +25,6 @@ public class AlarmActivity extends Activity {
 
         setContentView(R.layout.activity_alarm);
     }
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
